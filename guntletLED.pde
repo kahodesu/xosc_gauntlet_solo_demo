@@ -4,78 +4,85 @@ byte[] gauntletBlob = new byte [84];
 
 //////////////////////FUNCTIONS//////////////////////////////
 
-void gauntletColor(String colorName, int brightness, int levels){
-//--------------------------------------------------------------------
-  if (colorName == "red") {
-    //turn on LED color for as many levels
-    //the first 3 for 3 neopixels per level, second 3 for r, g, b. 
+
+class gameColor {
+  public int R; 
+  public int G;
+  public int B;
+
+  public gameColor(String colorName, int brightness) {
+
+    if (colorName == "red") {
+      R = brightness;
+      G =0;
+      B =0;
+    }
+    if (colorName == "blue") {
+      R = 0;
+      G =0;
+      B =brightness;
+    }
+    if (colorName == "white") {
+      R = brightness;
+      G = brightness;
+      B = brightness;
+    }
+  }
+}
+
+
+class pattern {
+  public void gauntletWipe() {
+    for (int i = 0; i<gauntletBlob.length; i++) {
+      gauntletBlob[i] = byte(0);
+    }
+  }
+  public void doPattern(gameColor c, int levels) {
+  }
+}
+
+class flashPattern extends pattern {
+
+ @Override
+    public void doPattern(gameColor c, int levels) {
+
+    gauntletWipe();
+    for (int i=0; i<int(levels/2); i++) {
+      int ranLevel = int(random(levels));
+      //for (int j=0; j<3; j++) {
+        gauntletBlob[(ranLevel*3)] = byte(c.R);
+        gauntletBlob[(ranLevel*3)+1] = byte(c.G);
+        gauntletBlob[(ranLevel*3)+2] = byte(c.B);
+      //}
+      //println(i);//FOR DEBUG
+    }
+  }
+}
+
+class fadeInPattern extends pattern{
+  double intensity = 1.0;
+   @Override
+    public void doPattern(gameColor c, int levels) {
+    intensity -= 0.01;
     gauntletWipe();
     for (int i=0; i<levels * 3; i=i+3) {
-      gauntletBlob[i] = byte(brightness);
-      gauntletBlob[i+1] = byte(0);
-      gauntletBlob[i+2] = byte(0);
+      gauntletBlob[i] = byte((int)(c.R * intensity));
+      gauntletBlob[i+1] = byte((int)(c.G * intensity));
+      gauntletBlob[i+2] = byte((int)(c.B * intensity));
     }
-    
   }
-//--------------------------------------------------------------------
-  else if (colorName == "blue") {
-    //turn on LED color for as many levels
-    //the first 3 for 3 neopixels per level, second 3 for r, g, b. 
-    gauntletWipe();
-    for (int i=0; i<levels * 3;i=i+3) {
-      gauntletBlob[i] = byte(0);
-      gauntletBlob[i+1] = byte(0);
-      gauntletBlob[i+2] = byte(brightness);
-    }
-   
-  }
-//--------------------------------------------------------------------
-  else if (colorName == "white") {
-    //turn on LED color for as many levels
-    //the first 3 for 3 neopixels per level, second 3 for r, g, b. 
-    gauntletWipe();
-    for (int i=0; i<levels * 3;i=i+3) {
-      gauntletBlob[i] = byte(brightness);
-      gauntletBlob[i+1] = byte(brightness);
-      gauntletBlob[i+2] = byte(brightness);
-    }
-    
-  }
-//--------------------------------------------------------------------
-  else if (colorName == "teal") {
-    //turn on LED color for as many levels
-    //the first 3 for 3 neopixels per level, second 3 for r, g, b. 
-    gauntletWipe();
-    for (int i=0; i<levels * 3;i=i+3) {
-      gauntletBlob[i] = byte(brightness);
-      gauntletBlob[i+1] = byte(brightness);
-      gauntletBlob[i+2] = byte(0);
-    }
-   
-  } 
+
 }
 
+class solidPattern extends pattern {
+ // @Override
+    public void doPattern(gameColor c, int levels) {
 
-void gauntletFlash(String colorName, int levels) {
-  if (colorName == "white") {
-    //turn on LED color for as many levels
-    //the first 3 for 3 neopixels per level, second 3 for r, g, b.
-      gauntletWipe();
-      for (int i=0; i<int(levels/2); i++) {
-        int ranLevel = int(random(levels));
-        for (int j=0; j<3; j++) {
-          gauntletBlob[(ranLevel*3)+j] = byte(255);
-          gauntletBlob[(ranLevel*3)+(j+1)] = byte(255);
-          gauntletBlob[(ranLevel*3)+(j+2)] = byte(255);
-        }
-     //println(i);//FOR DEBUG
+    gauntletWipe();
+    for (int i=0; i<levels * 3; i=i+3) {
+      gauntletBlob[i] = byte(c.R);
+      gauntletBlob[i+1] = byte(c.G);
+      gauntletBlob[i+2] = byte(c.B);
     }
-  } 
-}
-
-void gauntletWipe(){
-for (int i = 0; i<gauntletBlob.length;i++) {
-      gauntletBlob[i] = byte(0);
-
-    }
+  }
 }

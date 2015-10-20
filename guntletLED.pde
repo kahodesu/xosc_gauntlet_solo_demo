@@ -1,167 +1,141 @@
 //////////////////////VARIABLES TO CHANGE//////////////////////////////
-
 int gauntletLEDNum = 28; //put the number of neopixels
-gameColor[] colors = new gameColor[10];
-
-//gameColor[] colors = {gameColor("white", 255), gameColor("yellow", 255), gameColor("orange", 255), gameColor("blue", 255), gameColor("cyan", 255), gameColor("pink", 255), gameColor("purple", 255), gameColor("green", 255), gameColor("aqua", 255)}; //list all your colors here
-pattern[] patterns = new pattern[4]; //
 
 //////////////////////VARIABLES//////////////////////////////
 byte[] gauntletBlob = new byte [gauntletLEDNum * 3]; //3 is for  R G B values. this blog array is what gets sent to the xOSC
+HashMap<String, gameColor> colors = new HashMap<String, gameColor>();
+HashMap<String, pattern> patterns = new HashMap<String, pattern>();
 
 //////////////////////CLASSES//////////////////////////////
 void LEDsetup() {
-  colors[0] = new gameColor("white", 255);
-  colors[1] = new gameColor("yellow", 255);
-  colors[2] = new gameColor("orange", 255);
-  colors[3] = new gameColor("blue", 255);
-  colors[4] = new gameColor("cyan", 255);
-  colors[5] = new gameColor("pink", 255);
-  colors[6] = new gameColor("purple", 255);
-  colors[7] = new gameColor("green", 255);
-  colors[8] = new gameColor("aqua", 255);
-  colors[9] = new gameColor("red", 255);
+  ///setting up names for Hashmap
+  colors.put("white", new gameColor(255, 255, 255));
+  colors.put("yellow", new gameColor(255, 255, 0));
+  colors.put("red", new gameColor(255, 0, 0));
+  colors.put("orange", new gameColor(255, 140, 0));
+  colors.put("blue", new gameColor(0, 0, 255));
+  colors.put("cyan", new gameColor(0, 255, 255));
+  colors.put("pink", new gameColor(255, 0, 255));
+  colors.put("purple", new gameColor(138, 43, 255));
+  colors.put("green", new gameColor(0, 255, 0));
+  colors.put("aqua", new gameColor(102, 205, 170));
 
+  patterns.put("solid", new solid());
+  patterns.put("fire", new fire());
+  patterns.put("fadeIn", new fadeIn());
+  patterns.put("flash", new flash());
+}
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-  patterns[0] = new solidPattern();
-  patterns[1] = new fire();
-  patterns[2] = new fadeInPattern();
-  patterns[3] = new flashPattern();
-
- // ((twoColorFlashPattern)patterns[1]).p = new flashPattern();
+class gameColor {
+    int R, G, B;
+    public gameColor (int r, int g, int b){
+      R = r;
+      G = g;
+      B = b; 
+  }
 }
 
 //This is the parent class called pattern
 class pattern {
+  gameColor c1; 
+  pattern() {
+  }  
 
-  public void gauntletWipe() { // wipes the LEDs, this function is inherited by all the kids
+  void gauntletWipe() { // wipes the LEDs, this function is inherited by all the kids
     for (int i = 0; i<gauntletBlob.length; i++) {
       gauntletBlob[i] = byte(0);
     }
   }
-  public void doPattern(gameColor c, int levels) {   //this one is emtpy cause the kids will fill it in
+  void doPattern(int levels) {   //this one is emtpy cause the kids will fill it in
+  }
+
+  void gauntletShow() {
+    OscMessage myMessage = new OscMessage("/outputs/rgb/1"); //address pattern
+    myMessage.add(gauntletBlob); //puts blob into message
+    //println(' myMessage: '+myMessage); //FOR DEBUG
+    oscP5.send(myMessage, gauntletLoc);//sends blob over
   }
 }
 
-//These are the kids ok
-class solidPattern extends pattern {
-  @Override  //this is optional but helps to debug apparently
-    public void doPattern(gameColor c, int levels) { //this is the part that fits into the parent class
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+class solid extends pattern {
+  solid() {
+  }
+
+  void doPattern(int levels) { //this is the part that fits into the parent class
     gauntletWipe();
     for (int i=0; i<levels * 3; i=i+3) {
-      gauntletBlob[i] = byte(c.R);
-      gauntletBlob[i+1] = byte(c.G);
-      gauntletBlob[i+2] = byte(c.B);
+      gauntletBlob[i] = byte(c1.R);
+      gauntletBlob[i+1] = byte(c1.G);
+      gauntletBlob[i+2] = byte(c1.B);
     }
+    gauntletShow();
   }
 }
 
-class fire extends pattern {
-  public pattern flame =  new solidPattern(); 
-  public pattern flicker = new flashPattern(); 
-  public int counter; 
-  @Override
-    public void doPattern(gameColor c, int levels) {
-    counter += 1;
-    if (counter %2 == 0) {
-      flame.doPattern(colors[2], 28); //runs super class which is solidPattern
-    } 
-    else {    
-      flicker.doPattern(colors[9], 28);
-    }
-  }
-}
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-
-class flashPattern extends pattern {
-  @Override
-    public void doPattern(gameColor c, int levels) {
+class flash extends pattern {
+  //@Override
+  void doPattern(int levels) {
 
     gauntletWipe();
     for (int i=0; i<int(levels/2); i++) {
       int ranLevel = int(random(levels));
-      gauntletBlob[(ranLevel*3)] = byte(c.R);
-      gauntletBlob[(ranLevel*3)+1] = byte(c.G);
-      gauntletBlob[(ranLevel*3)+2] = byte(c.B);
+      gauntletBlob[(ranLevel*3)] = byte(c1.R);
+      gauntletBlob[(ranLevel*3)+1] = byte(c1.G);
+      gauntletBlob[(ranLevel*3)+2] = byte(c1.B);
     }
+    gauntletShow();
   }
 }
 
-class fadeInPattern extends pattern {
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+class fadeIn extends pattern {
   double intensity = 1.0;
   @Override
-    public void doPattern(gameColor c, int levels) {
+    void doPattern(int levels) {
     intensity -= 0.01;
     gauntletWipe();
     for (int i=0; i<levels * 3; i=i+3) {
-      gauntletBlob[i] = byte((int)(c.R * intensity));
-      gauntletBlob[i+1] = byte((int)(c.G * intensity));
-      gauntletBlob[i+2] = byte((int)(c.B * intensity));
+      gauntletBlob[i] = byte((int)(c1.R * intensity));
+      gauntletBlob[i+1] = byte((int)(c1.G * intensity));
+      gauntletBlob[i+2] = byte((int)(c1.B * intensity));
     }
+    gauntletShow();
   }
 }
 
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-
-
-
-
-//this is for color names 
-class gameColor {
-  public int R; 
-  public int G;
-  public int B;
-
-  public gameColor(String colorName, int brightness) {
-    if (colorName == "white") {
-      R = brightness;
-      G = brightness;
-      B = brightness;
+class fire extends pattern {
+  public pattern flame =  new solid(); 
+  public pattern flicker = new flash();
+  public gameColor c2; 
+  public int counter; 
+  @Override
+    public void doPattern(int levels) {
+    counter += 1;
+    if ((counter /2) % 2 == 0) {
+      flame.c1 = c1;
+      flame.doPattern(levels); //runs super class which is solidPattern
+    } else {
+      flicker.c1 = c2; 
+      flicker.doPattern(levels);
     }
-    if (colorName == "red") {
-      R = brightness;
-      G =0;
-      B =0;
-    }
-    if (colorName == "orange") {//255,140,0
-      R = brightness;
-      G = brightness * 75/255;
-      B = 0;
-    }
-    if (colorName == "yellow") {//(255,255,0)
-      R = brightness;
-      G = brightness;
-      B = 0;
-    }
-    if (colorName == "blue") {
-      R = 0;
-      G = 0;
-      B = brightness;
-    }
-    if (colorName == "cyan") {//   (0,255,255)
-      R = 0;
-      G = brightness;
-      B = brightness;
-    }
-    if (colorName == "pink") {//(255, 0 ,255)
-      R = brightness;
-      G = 0;
-      B = brightness;
-    }
-    if (colorName == "purple") {  //138,43,226
-      R = brightness * 138/255;
-      G = brightness * 43/255;
-      B = brightness;
-    }
-    if (colorName == "green") {
-      R = 0;
-      G = brightness;
-      B = 0;
-    }
-    if (colorName == "aqua") { //102,205,170
-      R = brightness * 102/255;
-      G = brightness;
-      B = brightness * 170/255;
-    }
+    gauntletShow();
   }
 }

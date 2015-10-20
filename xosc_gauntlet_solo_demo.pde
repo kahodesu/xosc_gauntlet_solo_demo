@@ -14,7 +14,7 @@ import oscP5.*;
 import netP5.*; 
 
 //color c = color(255, 204, 0);
-byte[] blob = new byte [90];
+//byte[] blob = new byte [90];
 
 int gauntletLED = 0;             
 int brightness = 0;
@@ -31,20 +31,13 @@ LEDsetup();
   oscP5 = new OscP5(this, 8000);
   /* IP Address of the X-OSC */
   gauntletLoc = new NetAddress("169.254.1.1", 9000);
-//gauntletLoc = new NetAddress('169.254.1.2', 9000);
 
 
 }
 
 void draw() {
   counter++;
-patterns[1].doPattern(colors[1], 28);
+patterns.get("flash").c1 = colors.get("white");
+patterns.get("flash").doPattern(28);
 
-  
-  //int index = (counter / 250) % patterns.length;
-  //int cIndex = (counter / 100) % colors.length;
-  //patterns[index].doPattern(colors[cIndex], 28);
-  gauntletShow();
-
- // println (patterns[index]);
 }//

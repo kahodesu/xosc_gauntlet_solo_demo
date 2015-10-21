@@ -3,12 +3,13 @@ int gauntletLEDNum = 28; //put the number of neopixels
 
 //////////////////////VARIABLES//////////////////////////////
 byte[] gauntletBlob = new byte [gauntletLEDNum * 3]; //3 is for  R G B values. this blog array is what gets sent to the xOSC
+int gauntletLitLEDNum = 0; //put the number of neopixels
 HashMap<String, gameColor> colors = new HashMap<String, gameColor>();
 HashMap<String, pattern> patterns = new HashMap<String, pattern>();
 
-//////////////////////CLASSES//////////////////////////////
+//////////////////////SET UP//////////////////////////////
 void LEDsetup() {
-  ///setting up names for Hashmap
+  ///setting up names for hashmap and making objects :D
   colors.put("white", new gameColor(255, 255, 255));
   colors.put("yellow", new gameColor(255, 255, 0));
   colors.put("red", new gameColor(255, 0, 0));
@@ -25,13 +26,12 @@ void LEDsetup() {
   patterns.put("fadeIn", new fadeIn());
   patterns.put("flash", new flash());
 }
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
+
+//////////////////////////CLASSES/////////////////////////////////////
 
 class gameColor {
     int R, G, B;
-    public gameColor (int r, int g, int b){
+    gameColor (int r, int g, int b){
       R = r;
       G = g;
       B = b; 
@@ -43,25 +43,21 @@ class pattern {
   gameColor c1; 
   pattern() {
   }  
-
   void gauntletWipe() { // wipes the LEDs, this function is inherited by all the kids
     for (int i = 0; i<gauntletBlob.length; i++) {
       gauntletBlob[i] = byte(0);
     }
   }
-  void doPattern(int levels) {   //this one is emtpy cause the kids will fill it in
-  }
-
-  void gauntletShow() {
+  void gauntletShow() {// send the blob out to xOSC, this function is inherited by all the kids
     OscMessage myMessage = new OscMessage("/outputs/rgb/1"); //address pattern
     myMessage.add(gauntletBlob); //puts blob into message
     //println(' myMessage: '+myMessage); //FOR DEBUG
     oscP5.send(myMessage, gauntletLoc);//sends blob over
   }
+   void doPattern(int levels) {   //this one is emtpy cause the kids will fill it in
+  }
 }
 
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
 class solid extends pattern {
@@ -80,8 +76,6 @@ class solid extends pattern {
 }
 
 ///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
 
 class flash extends pattern {
   //@Override
@@ -98,8 +92,6 @@ class flash extends pattern {
   }
 }
 
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
 class fadeIn extends pattern {
@@ -118,16 +110,13 @@ class fadeIn extends pattern {
 }
 
 ///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
 
 class fire extends pattern {
-  public pattern flame =  new solid(); 
-  public pattern flicker = new flash();
-  public gameColor c2; 
-  public int counter; 
-  @Override
-    public void doPattern(int levels) {
+   pattern flame =  new solid(); 
+   pattern flicker = new flash();
+   gameColor c2; 
+   int counter; 
+    void doPattern(int levels) {
     counter += 1;
     if ((counter /2) % 2 == 0) {
       flame.c1 = c1;
